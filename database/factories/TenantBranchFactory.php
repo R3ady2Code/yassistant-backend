@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Domain\Booking\Enums\TenantBranchStatus;
 use App\Domain\Booking\Models\TenantBranch;
 use App\Domain\Identity\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -23,7 +24,7 @@ class TenantBranchFactory extends Factory
             'name' => fake()->company(),
             'address' => fake()->address(),
             'phone' => fake()->phoneNumber(),
-            'is_active' => true,
+            'status' => TenantBranchStatus::Active,
         ];
     }
 }

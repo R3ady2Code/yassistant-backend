@@ -12,7 +12,9 @@ interface TelegramContract
 
     public function unregisterWebhook(Channel $channel, string $botToken): void;
 
-    public function sendMessage(string $botToken, string $chatId, string $text, ?string $parseMode = 'HTML'): void;
+    public function sendMessage(string $botToken, string $chatId, string $text, ?string $parseMode = 'HTML', ?array $replyMarkup = null): void;
+
+    public function answerCallbackQuery(string $botToken, string $callbackQueryId, ?string $text = null): void;
 
     public function getFileUrl(string $botToken, string $fileId): string;
 }

@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Channel\Models;
+namespace App\Domain\Conversation\Models;
 
-use App\Domain\Channel\Enums\ChannelStatus;
-use App\Domain\Channel\Enums\ChannelType;
-use App\Domain\Conversation\Models\Conversation;
+use App\Domain\Channel\Models\Channel;
 use App\Domain\Identity\Models\Tenant;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -19,45 +17,51 @@ use Illuminate\Support\Carbon;
 /**
  * @property string $id
  * @property string $tenant_id
- * @property ChannelType $type
- * @property string $name
- * @property ?string $external_id
- * @property ?string $bot_token_vault_path
- * @property ?string $webhook_url
- * @property ?string $webhook_secret
- * @property ChannelStatus $status
+ * @property string $channel_id
+ * @property string $external_user_id
+ * @property ?string $name
+ * @property ?string $phone
+ * @property ?Carbon $privacy_accepted_at
  * @property ?Carbon $created_at
  * @property ?Carbon $updated_at
  * @property-read Tenant $tenant
+ * @property-read Channel $channel
  * @property-read Collection<int, Conversation> $conversations
  */
-class Channel extends Model
+class Client extends Model
 {
     use HasFactory;
     use HasUuids;
 
     protected $fillable = [
         'tenant_id',
-        'type',
+        'channel_id',
+        'external_user_id',
         'name',
-        'external_id',
-        'bot_token_vault_path',
-        'webhook_url',
-        'webhook_secret',
-        'status',
+        'phone',
+        'privacy_accepted_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'type' => ChannelType::class,
-            'status' => ChannelStatus::class,
+            'privacy_accepted_at' => 'datetime',
         ];
+    }
+
+    public function hasAcceptedPrivacy(): bool
+    {
+        return $this->privacy_accepted_at !== null;
     }
 
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function channel(): BelongsTo
+    {
+        return $this->belongsTo(Channel::class);
     }
 
     public function conversations(): HasMany

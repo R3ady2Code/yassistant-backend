@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Webhook;
 
 use App\Domain\Channel\Contracts\TelegramContract;
+use App\Domain\Channel\Enums\ChannelStatus;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Identity\Contracts\VaultContract;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,7 +25,7 @@ class TelegramWebhookControllerTest extends TestCase
         parent::setUp();
 
         $this->channel = Channel::factory()->telegram()->create([
-            'is_active' => true,
+            'status' => ChannelStatus::Active,
             'webhook_secret' => $this->webhookSecret,
             'bot_token_vault_path' => 'tenants/test/channels/test/bot_token',
         ]);
@@ -89,7 +90,7 @@ class TelegramWebhookControllerTest extends TestCase
 
     public function test_inactive_channel_returns_404(): void
     {
-        $this->channel->update(['is_active' => false]);
+        $this->channel->update(['status' => ChannelStatus::Inactive]);
 
         $response = $this->postJson(
             "/api/webhook/telegram/{$this->channel->id}",

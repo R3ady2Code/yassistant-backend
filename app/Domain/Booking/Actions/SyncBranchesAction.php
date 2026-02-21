@@ -6,6 +6,7 @@ namespace App\Domain\Booking\Actions;
 
 use App\Abstracts\AbstractAction;
 use App\Domain\Booking\Contracts\YClientsContract;
+use App\Domain\Booking\Enums\TenantBranchStatus;
 use App\Domain\Booking\Models\TenantBranch;
 use App\Domain\Identity\Contracts\VaultContract;
 use App\Domain\Identity\Models\Tenant;
@@ -46,7 +47,7 @@ final class SyncBranchesAction extends AbstractAction
                     'name' => $branch['title'] ?? $branch['name'] ?? '',
                     'address' => $branch['address'] ?? null,
                     'phone' => $branch['phone'] ?? null,
-                    'is_active' => true,
+                    'status' => TenantBranchStatus::Active,
                 ],
             );
         }
@@ -56,7 +57,7 @@ final class SyncBranchesAction extends AbstractAction
         if ($removedIds) {
             $tenant->branches()
                 ->whereIn('yclients_branch_id', $removedIds)
-                ->update(['is_active' => false]);
+                ->update(['status' => TenantBranchStatus::Inactive]);
         }
 
         return $tenant->branches()->orderBy('name')->get();

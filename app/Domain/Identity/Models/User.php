@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -16,14 +17,13 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $tenant_id
  * @property string $name
  * @property string $email
- * @property string|null $google_id
- * @property string|null $avatar
- * @property \Illuminate\Support\Carbon|null $email_verified_at
- * @property string|null $password
- * @property string|null $remember_token
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- *
+ * @property ?string $google_id
+ * @property ?string $avatar
+ * @property ?Carbon $email_verified_at
+ * @property ?string $password
+ * @property ?string $remember_token
+ * @property ?Carbon $created_at
+ * @property ?Carbon $updated_at
  * @property-read Tenant $tenant
  */
 class User extends Authenticatable

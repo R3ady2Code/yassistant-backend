@@ -38,6 +38,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-// Telegram webhook (protected by per-channel secret token)
+// Telegram webhook (protected by a per-channel secret token)
 Route::post('/webhook/telegram/{channel}', TelegramWebhookController::class)
     ->middleware(VerifyTelegramWebhookSecret::class);

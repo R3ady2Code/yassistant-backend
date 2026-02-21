@@ -6,13 +6,21 @@ namespace App\Adapters\Telegram;
 
 use App\Domain\Channel\Contracts\TelegramContract;
 use App\Domain\Channel\Models\Channel;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use RuntimeException;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Properties\ParseMode;
+use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
+use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 use Throwable;
 
 readonly class TelegramAdapter implements TelegramContract
 {
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     private function makeBot(string $botToken): Nutgram
     {
         return new Nutgram($botToken);
@@ -20,7 +28,7 @@ readonly class TelegramAdapter implements TelegramContract
 
     public function registerWebhook(Channel $channel, string $botToken, string $webhookSecret): string
     {
-        $webhookUrl = rtrim(config('app.url'), '/') . "/api/webhook/telegram/{$channel->id}";
+        $webhookUrl = rtrim(config('app.url'), '/')."/api/webhook/telegram/{$channel->id}";
 
         try {
             $bot = $this->makeBot($botToken);
@@ -50,13 +58,39 @@ readonly class TelegramAdapter implements TelegramContract
         }
     }
 
-    public function sendMessage(string $botToken, string $chatId, string $text, ?string $parseMode = 'HTML'): void
+    public function sendMessage(string $botToken, string $chatId, string $text, ?string $parseMode = 'HTML', ?array $replyMarkup = null): void
     {
         $bot = $this->makeBot($botToken);
+
+        $markup = null;
+        if ($replyMarkup !== null) {
+            $markup = InlineKeyboardMarkup::make();
+            foreach ($replyMarkup as $row) {
+                $buttons = array_map(
+                    fn (array $btn) => InlineKeyboardButton::make(
+                        text: $btn['text'],
+                        callback_data: $btn['callback_data'] ?? null,
+                    ),
+                    $row,
+                );
+                $markup->addRow(...$buttons);
+            }
+        }
+
         $bot->sendMessage(
             text: $text,
             chat_id: $chatId,
             parse_mode: $parseMode ? ParseMode::from($parseMode) : null,
+            reply_markup: $markup,
+        );
+    }
+
+    public function answerCallbackQuery(string $botToken, string $callbackQueryId, ?string $text = null): void
+    {
+        $bot = $this->makeBot($botToken);
+        $bot->answerCallbackQuery(
+            callback_query_id: $callbackQueryId,
+            text: $text,
         );
     }
 

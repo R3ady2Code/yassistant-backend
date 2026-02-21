@@ -6,6 +6,7 @@ namespace App\Domain\Channel\Actions;
 
 use App\Abstracts\AbstractAction;
 use App\Domain\Channel\Contracts\TelegramContract;
+use App\Domain\Channel\Enums\ChannelStatus;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Identity\Contracts\VaultContract;
 
@@ -20,7 +21,7 @@ final class DeactivateChannelAction extends AbstractAction
 
     public function handle(Channel $channel): Channel
     {
-        if (!$channel->is_active) {
+        if ($channel->status === ChannelStatus::Inactive) {
             return $channel;
         }
 
@@ -31,7 +32,7 @@ final class DeactivateChannelAction extends AbstractAction
         }
 
         $channel->update([
-            'is_active' => false,
+            'status' => ChannelStatus::Inactive,
             'webhook_url' => null,
             'webhook_secret' => null,
         ]);

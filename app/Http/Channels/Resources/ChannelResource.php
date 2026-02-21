@@ -18,7 +18,7 @@ class ChannelResource extends AbstractJsonResource
             'name' => $this->name,
             'external_id' => $this->external_id,
             'webhook_url' => $this->webhook_url,
-            'is_active' => $this->is_active,
+            'status' => $this->status->value,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

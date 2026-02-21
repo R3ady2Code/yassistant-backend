@@ -6,6 +6,7 @@ namespace App\Domain\Channel\Actions;
 
 use App\Abstracts\AbstractAction;
 use App\Domain\Channel\Contracts\TelegramContract;
+use App\Domain\Channel\Enums\ChannelStatus;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Identity\Contracts\VaultContract;
 
@@ -20,7 +21,7 @@ final class DeleteChannelAction extends AbstractAction
 
     public function handle(Channel $channel): void
     {
-        if ($channel->is_active && $channel->bot_token_vault_path) {
+        if ($channel->status === ChannelStatus::Active && $channel->bot_token_vault_path) {
             $botToken = $this->vault->get($channel->bot_token_vault_path);
 
             if ($botToken) {

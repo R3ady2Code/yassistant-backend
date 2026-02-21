@@ -6,30 +6,32 @@ namespace App\Domain\Conversation\Models;
 
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Conversation\Enums\ConversationMode;
+use App\Domain\Conversation\Enums\ConversationStatus;
 use App\Domain\Identity\Models\Tenant;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $id
  * @property string $tenant_id
  * @property string $channel_id
+ * @property ?string $client_id
  * @property string $external_chat_id
- * @property string|null $client_name
- * @property string|null $client_phone
  * @property ConversationMode $mode
- * @property array|null $scenario_state
- * @property bool $is_closed
- * @property \Illuminate\Support\Carbon|null $last_message_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- *
+ * @property ?array $scenario_state
+ * @property ConversationStatus $status
+ * @property ?Carbon $last_message_at
+ * @property ?Carbon $created_at
+ * @property ?Carbon $updated_at
  * @property-read Tenant $tenant
  * @property-read Channel $channel
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Message> $messages
+ * @property-read ?Client $client
+ * @property-read Collection<int, Message> $messages
  */
 class Conversation extends Model
 {
@@ -39,12 +41,11 @@ class Conversation extends Model
     protected $fillable = [
         'tenant_id',
         'channel_id',
+        'client_id',
         'external_chat_id',
-        'client_name',
-        'client_phone',
         'mode',
         'scenario_state',
-        'is_closed',
+        'status',
         'last_message_at',
     ];
 
@@ -53,7 +54,7 @@ class Conversation extends Model
         return [
             'mode' => ConversationMode::class,
             'scenario_state' => 'json',
-            'is_closed' => 'boolean',
+            'status' => ConversationStatus::class,
             'last_message_at' => 'datetime',
         ];
     }
@@ -66,6 +67,11 @@ class Conversation extends Model
     public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 
     public function messages(): HasMany

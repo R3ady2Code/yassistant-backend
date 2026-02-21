@@ -8,6 +8,7 @@ use App\Abstracts\AbstractAction;
 use App\Domain\AI\Models\BotSettings;
 use App\Domain\Identity\DataObjects\AuthResultData;
 use App\Domain\Identity\DataObjects\RegisterTenantData;
+use App\Domain\Identity\Enums\TenantStatus;
 use App\Domain\Identity\Models\Tenant;
 use App\Domain\Identity\Models\User;
 use App\Domain\Scenario\Actions\SeedDefaultScenariosAction;
@@ -27,8 +28,8 @@ final class RegisterTenantAction extends AbstractAction
         return DB::transaction(function () use ($data): AuthResultData {
             $tenant = Tenant::create([
                 'name' => $data->tenantName,
-                'slug' => Str::slug($data->tenantName) . '-' . Str::random(6),
-                'is_active' => true,
+                'slug' => Str::slug($data->tenantName).'-'.Str::random(6),
+                'status' => TenantStatus::Active,
             ]);
 
             $user = User::create([

@@ -6,6 +6,7 @@ namespace App\Domain\Scenario\Actions;
 
 use App\Abstracts\AbstractAction;
 use App\Domain\Identity\Models\Tenant;
+use App\Domain\Scenario\Enums\ScenarioStatus;
 use App\Domain\Scenario\Enums\ScenarioType;
 use App\Domain\Scenario\Models\Scenario;
 
@@ -19,7 +20,7 @@ final class SeedDefaultScenariosAction extends AbstractAction
             'slug' => 'faq',
             'type' => ScenarioType::Default,
             'schema' => $this->faqSchema(),
-            'is_active' => true,
+            'status' => ScenarioStatus::Active,
         ]);
 
         Scenario::create([
@@ -28,7 +29,7 @@ final class SeedDefaultScenariosAction extends AbstractAction
             'slug' => 'yclients_pipeline',
             'type' => ScenarioType::Default,
             'schema' => $this->yclientsPipelineSchema(),
-            'is_active' => true,
+            'status' => ScenarioStatus::Active,
         ]);
     }
 

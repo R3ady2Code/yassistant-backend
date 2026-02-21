@@ -11,10 +11,12 @@ final readonly class IncomingMessageData
     public function __construct(
         public string $channelId,
         public string $externalChatId,
+        public string $externalUserId,
         public MessageType $type,
         public ?string $text,
         public ?string $senderName,
         public ?string $senderPhone,
         public ?array $attachments,
+        public ?string $callbackQueryId = null,
     ) {}
 }

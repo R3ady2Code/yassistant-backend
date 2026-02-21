@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Domain\Channel\Enums\ChannelStatus;
 use App\Domain\Channel\Enums\ChannelType;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Identity\Models\Tenant;
@@ -22,7 +23,7 @@ class ChannelFactory extends Factory
             'tenant_id' => Tenant::factory(),
             'type' => fake()->randomElement(ChannelType::cases()),
             'name' => fake()->words(2, true),
-            'is_active' => true,
+            'status' => ChannelStatus::Active,
         ];
     }
 

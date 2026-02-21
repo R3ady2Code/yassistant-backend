@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $id
@@ -18,11 +19,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property MessageType $type
  * @property MessageDirection $direction
  * @property SenderType $sender_type
- * @property string|null $text
- * @property array|null $attachments
- * @property array|null $metadata
- * @property \Illuminate\Support\Carbon $created_at
- *
+ * @property ?string $text
+ * @property ?array $attachments
+ * @property ?array $metadata
+ * @property Carbon $created_at
  * @property-read Conversation $conversation
  */
 class Message extends Model

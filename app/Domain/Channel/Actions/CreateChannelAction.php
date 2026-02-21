@@ -6,6 +6,7 @@ namespace App\Domain\Channel\Actions;
 
 use App\Abstracts\AbstractAction;
 use App\Domain\Channel\DataObjects\CreateChannelData;
+use App\Domain\Channel\Enums\ChannelStatus;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Identity\Contracts\VaultContract;
 
@@ -19,7 +20,7 @@ final class CreateChannelAction extends AbstractAction
 
     public function handle(CreateChannelData $data): Channel
     {
-        $vaultPath = "tenants/{$data->tenantId}/channels/" . uniqid('', true) . '/bot_token';
+        $vaultPath = "tenants/{$data->tenantId}/channels/".uniqid('', true).'/bot_token';
 
         $this->vault->put($vaultPath, $data->botToken);
 
@@ -28,7 +29,7 @@ final class CreateChannelAction extends AbstractAction
             'type' => $data->type,
             'name' => $data->name,
             'bot_token_vault_path' => $vaultPath,
-            'is_active' => false,
+            'status' => ChannelStatus::Inactive,
         ]);
     }
 }

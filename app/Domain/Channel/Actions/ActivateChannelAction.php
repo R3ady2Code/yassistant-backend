@@ -6,6 +6,7 @@ namespace App\Domain\Channel\Actions;
 
 use App\Abstracts\AbstractAction;
 use App\Domain\Channel\Contracts\TelegramContract;
+use App\Domain\Channel\Enums\ChannelStatus;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Identity\Contracts\VaultContract;
 use RuntimeException;
@@ -21,7 +22,7 @@ final class ActivateChannelAction extends AbstractAction
 
     public function handle(Channel $channel): Channel
     {
-        if ($channel->is_active) {
+        if ($channel->status === ChannelStatus::Active) {
             return $channel;
         }
 
@@ -36,7 +37,7 @@ final class ActivateChannelAction extends AbstractAction
         $webhookUrl = $this->webhookRegistrar->registerWebhook($channel, $botToken, $webhookSecret);
 
         $channel->update([
-            'is_active' => true,
+            'status' => ChannelStatus::Active,
             'webhook_url' => $webhookUrl,
             'webhook_secret' => $webhookSecret,
         ]);

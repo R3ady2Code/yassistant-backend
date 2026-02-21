@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Domain\Identity\Models\Tenant;
+use App\Domain\Scenario\Enums\ScenarioStatus;
 use App\Domain\Scenario\Enums\ScenarioType;
 use App\Domain\Scenario\Models\Scenario;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -27,7 +28,7 @@ class ScenarioFactory extends Factory
             'slug' => Str::slug($name),
             'type' => ScenarioType::Custom,
             'schema' => ['nodes' => [], 'edges' => [], 'start_node' => null],
-            'is_active' => true,
+            'status' => ScenarioStatus::Active,
         ];
     }
 

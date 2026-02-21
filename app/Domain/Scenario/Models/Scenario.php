@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Scenario\Models;
 
 use App\Domain\Identity\Models\Tenant;
+use App\Domain\Scenario\Enums\ScenarioStatus;
 use App\Domain\Scenario\Enums\ScenarioType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $id
@@ -18,10 +20,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $slug
  * @property ScenarioType $type
  * @property array $schema
- * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- *
+ * @property ScenarioStatus $status
+ * @property ?Carbon $created_at
+ * @property ?Carbon $updated_at
  * @property-read Tenant $tenant
  */
 class Scenario extends Model
@@ -35,7 +36,7 @@ class Scenario extends Model
         'slug',
         'type',
         'schema',
-        'is_active',
+        'status',
     ];
 
     protected function casts(): array
@@ -43,7 +44,7 @@ class Scenario extends Model
         return [
             'type' => ScenarioType::class,
             'schema' => 'json',
-            'is_active' => 'boolean',
+            'status' => ScenarioStatus::class,
         ];
     }
 

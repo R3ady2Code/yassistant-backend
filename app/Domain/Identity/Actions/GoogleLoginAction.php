@@ -7,6 +7,7 @@ namespace App\Domain\Identity\Actions;
 use App\Abstracts\AbstractAction;
 use App\Domain\AI\Models\BotSettings;
 use App\Domain\Identity\DataObjects\AuthResultData;
+use App\Domain\Identity\Enums\TenantStatus;
 use App\Domain\Identity\Models\Tenant;
 use App\Domain\Identity\Models\User;
 use App\Domain\Scenario\Actions\SeedDefaultScenariosAction;
@@ -52,8 +53,8 @@ final class GoogleLoginAction extends AbstractAction
 
             $tenant = Tenant::create([
                 'name' => $name,
-                'slug' => Str::slug($name) . '-' . Str::random(6),
-                'is_active' => true,
+                'slug' => Str::slug($name).'-'.Str::random(6),
+                'status' => TenantStatus::Active,
             ]);
 
             $user = User::create([
