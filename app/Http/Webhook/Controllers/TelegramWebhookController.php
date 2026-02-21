@@ -42,7 +42,7 @@ final class TelegramWebhookController extends AbstractController
             $botToken = $this->vault->get($channel->bot_token_vault_path);
 
             if ($botToken === null) {
-                throw new BotTokenNotFoundException("Bot token not found for channel [{$channel->id}]");
+                throw new BotTokenNotFoundException($channel->id);
             }
 
             $client = Client::query()->firstOrCreate(

@@ -29,7 +29,7 @@ final class ActivateChannelAction extends AbstractAction
         $botToken = $this->vault->get($channel->bot_token_vault_path);
 
         if (! $botToken) {
-            throw new BotTokenNotFoundException("Bot token not found for channel [{$channel->id}]");
+            throw new BotTokenNotFoundException($channel->id);
         }
 
         $webhookSecret = bin2hex(random_bytes(32));
