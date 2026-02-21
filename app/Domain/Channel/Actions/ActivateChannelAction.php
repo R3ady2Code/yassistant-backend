@@ -7,9 +7,9 @@ namespace App\Domain\Channel\Actions;
 use App\Abstracts\AbstractAction;
 use App\Domain\Channel\Contracts\TelegramContract;
 use App\Domain\Channel\Enums\ChannelStatus;
+use App\Domain\Channel\Exceptions\BotTokenNotFoundException;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Identity\Contracts\VaultContract;
-use RuntimeException;
 
 final class ActivateChannelAction extends AbstractAction
 {
@@ -29,7 +29,7 @@ final class ActivateChannelAction extends AbstractAction
         $botToken = $this->vault->get($channel->bot_token_vault_path);
 
         if (! $botToken) {
-            throw new RuntimeException("Bot token not found for channel [{$channel->id}]");
+            throw new BotTokenNotFoundException("Bot token not found for channel [{$channel->id}]");
         }
 
         $webhookSecret = bin2hex(random_bytes(32));

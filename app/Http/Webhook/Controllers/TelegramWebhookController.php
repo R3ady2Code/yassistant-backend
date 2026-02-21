@@ -7,27 +7,82 @@ namespace App\Http\Webhook\Controllers;
 use App\Abstracts\AbstractController;
 use App\Abstracts\Empty204Resource;
 use App\Adapters\Telegram\TelegramUpdateParser;
+use App\Domain\Channel\Contracts\TelegramContract;
+use App\Domain\Channel\Exceptions\BotTokenNotFoundException;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Conversation\Actions\ProcessIncomingMessageAction;
+use App\Domain\Conversation\Actions\SendPrivacyMessageAction;
+use App\Domain\Conversation\DataObjects\HandleMessageData;
+use App\Domain\Conversation\Enums\ConversationMode;
+use App\Domain\Conversation\Enums\ConversationStatus;
+use App\Domain\Conversation\Models\Client;
+use App\Domain\Conversation\Models\Conversation;
+use App\Domain\Identity\Contracts\VaultContract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use SergiX44\Hydrator\Hydrator;
 
 final class TelegramWebhookController extends AbstractController
 {
+    public function __construct(
+        private readonly VaultContract $vault,
+        private readonly TelegramContract $telegram,
+    ) {
+    }
+
     public function __invoke(
         Request $request,
         Channel $channel,
         TelegramUpdateParser $parser,
-        ProcessIncomingMessageAction $action,
+        ProcessIncomingMessageAction $processIncomingMessageAction,
+        SendPrivacyMessageAction $sendPrivacyMessageAction
     ): Empty204Resource {
         try {
-            $data = $parser->parse($channel->id, $request->all());
+            $messageData = $parser->parse($channel->id, $request->all());
+            $botToken = $this->vault->get($channel->bot_token_vault_path);
 
-            if ($data === null) {
+            if ($botToken === null) {
+                throw new BotTokenNotFoundException("Bot token not found for channel [{$channel->id}]");
+            }
+
+            $client = Client::query()->firstOrCreate(
+                [
+                    'channel_id' => $channel->id,
+                    'external_user_id' => $messageData->externalUserId,
+                ],
+                [
+                    'tenant_id' => $channel->tenant_id,
+                    'name' => $messageData->senderName,
+                ],
+            );
+
+            $conversation = Conversation::query()->firstOrCreate(
+                [
+                    'channel_id' => $channel->id,
+                    'client_id' => $client->id,
+                    'external_chat_id' => $messageData->externalChatId,
+                    'status' => ConversationStatus::Open,
+                ],
+                [
+                    'tenant_id' => $channel->tenant_id,
+                    'mode' => ConversationMode::AI,
+                ],
+            );
+
+            $handleMessageData = new HandleMessageData(
+                botToken: $botToken,
+                conversation: $conversation,
+                client: $client,
+                messageData: $messageData
+            );
+
+            if (!$client->hasAcceptedPrivacy()) {
+                $sendPrivacyMessageAction->handle($handleMessageData);
+
                 return Empty204Resource::make(null);
             }
 
-            $action->handle($channel, $data);
+            $processIncomingMessageAction->handle($channel, $messageData);
 
             return Empty204Resource::make(null);
         } catch (\Throwable $e) {
