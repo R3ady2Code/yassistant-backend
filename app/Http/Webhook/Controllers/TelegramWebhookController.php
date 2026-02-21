@@ -82,6 +82,12 @@ final class TelegramWebhookController extends AbstractController
                 return Empty204Resource::make(null);
             }
 
+            if ($conversation->mode === ConversationMode::Manual) {
+                return Empty204Resource::make(null);
+            }
+
+
+
             $processIncomingMessageAction->handle($channel, $messageData);
 
             return Empty204Resource::make(null);
