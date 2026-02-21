@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Middleware;
+
+use App\Domain\Channel\Models\Channel;
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class VerifyTelegramWebhookSecret
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        /** @var Channel|null $channel */
+        $channel = $request->route('channel');
+
+        if (! $channel instanceof Channel || ! $channel->is_active) {
+            abort(404);
+        }
+
+        $headerSecret = $request->header('X-Telegram-Bot-Api-Secret-Token', '');
+        $channelSecret = $channel->webhook_secret ?? '';
+
+        if ($channelSecret === '' || ! hash_equals($channelSecret, $headerSecret)) {
+            abort(401, 'Invalid webhook secret');
+        }
+
+        return $next($request);
+    }
+}

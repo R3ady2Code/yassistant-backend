@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Channel\Actions;
+
+use App\Abstracts\AbstractAction;
+use App\Domain\Channel\Contracts\TelegramContract;
+use App\Domain\Channel\Models\Channel;
+use App\Domain\Identity\Contracts\VaultContract;
+use RuntimeException;
+
+final class ActivateChannelAction extends AbstractAction
+{
+    public function __construct(
+        private readonly VaultContract $vault,
+        private readonly TelegramContract $webhookRegistrar,
+    ) {
+        parent::__construct();
+    }
+
+    public function handle(Channel $channel): Channel
+    {
+        if ($channel->is_active) {
+            return $channel;
+        }
+
+        $botToken = $this->vault->get($channel->bot_token_vault_path);
+
+        if (! $botToken) {
+            throw new RuntimeException("Bot token not found for channel [{$channel->id}]");
+        }
+
+        $webhookSecret = bin2hex(random_bytes(32));
+
+        $webhookUrl = $this->webhookRegistrar->registerWebhook($channel, $botToken, $webhookSecret);
+
+        $channel->update([
+            'is_active' => true,
+            'webhook_url' => $webhookUrl,
+            'webhook_secret' => $webhookSecret,
+        ]);
+
+        return $channel->refresh();
+    }
+}
