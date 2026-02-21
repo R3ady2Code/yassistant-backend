@@ -8,6 +8,11 @@ use App\Domain\Channel\Enums\ChannelType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * @property-read string $type
+ * @property-read string $name
+ * @property-read string $bot_token
+ */
 class CreateChannelRequest extends FormRequest
 {
     public function authorize(): bool

@@ -6,6 +6,12 @@ namespace App\Http\Auth\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * @property-read string $name
+ * @property-read string $email
+ * @property-read string $password
+ * @property-read string $tenant_name
+ */
 class RegisterRequest extends FormRequest
 {
     public function authorize(): bool

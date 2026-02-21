@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Middleware;
+namespace App\Http\Webhook\Middleware;
 
 use App\Domain\Channel\Models\Channel;
 use Closure;

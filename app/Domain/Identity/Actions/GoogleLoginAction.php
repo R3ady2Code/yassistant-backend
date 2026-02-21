@@ -7,7 +7,6 @@ namespace App\Domain\Identity\Actions;
 use App\Abstracts\AbstractAction;
 use App\Domain\AI\Models\BotSettings;
 use App\Domain\Identity\DataObjects\AuthResultData;
-use App\Domain\Identity\DataObjects\GoogleLoginData;
 use App\Domain\Identity\Models\Tenant;
 use App\Domain\Identity\Models\User;
 use App\Domain\Scenario\Actions\SeedDefaultScenariosAction;
@@ -23,9 +22,9 @@ final class GoogleLoginAction extends AbstractAction
         parent::__construct();
     }
 
-    public function handle(GoogleLoginData $data): AuthResultData
+    public function handle(string $token): AuthResultData
     {
-        $googleUser = Socialite::driver('google')->stateless()->userFromToken($data->token);
+        $googleUser = Socialite::driver('google')->stateless()->userFromToken($token);
 
         $user = User::where('google_id', $googleUser->getId())->first();
 
