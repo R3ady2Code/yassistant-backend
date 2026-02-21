@@ -4,7 +4,7 @@
 
 ## Обзор проекта
 
-Мультитенантный Laravel 12 API с DDD-архитектурой. Сервис управляет AI-ботами для записи клиентов через YClients. Принимает сообщения из мессенджеров (через отдельный Node.js Gateway), обрабатывает их через OpenAI с function calling, управляет бронированиями, сценариями и диалогами.
+Мультитенантный Laravel 12 API с DDD-архитектурой. Сервис управляет AI-ботами для записи клиентов через YClients. Напрямую принимает Telegram webhook и отправляет сообщения через Telegram Bot API. Обрабатывает сообщения через OpenAI с function calling, управляет бронированиями, сценариями и диалогами.
 
 ## Стек
 
@@ -26,7 +26,7 @@ Http → Domain ← Adapters
 
 - **Domain/** — бизнес-логика. НЕ зависит от Http, Adapters, Laravel facades.
 - **Http/** — контроллеры, requests, resources. Зависит от Domain.
-- **Adapters/** — реализации контрактов из Domain (Vault, OpenAI, YClients, Gateway, S3).
+- **Adapters/** — реализации контрактов из Domain (Vault, OpenAI, YClients, Telegram, S3).
 - **Providers/AdapterServiceProvider.php** — все биндинги Contract → Adapter.
 
 ### Домены
@@ -173,15 +173,16 @@ final class SomeController extends AbstractController
 ### Входящее сообщение (любой тип)
 
 ```
-Gateway POST /api/bot/incoming
-  → BotWebhookController
-    → IncomingMessageRequest (валидация: channel_id, type, text?, attachments?)
-    → ProcessIncomingMessageAction.handle(IncomingMessageData)
-      1. findOrCreateConversation
-      2. Сохранить Message (type + attachments в jsonb)
-      3. Если есть file_id → dispatch DownloadTelegramFileJob
-      4. Если voice → dispatch TranscribeVoiceMessageJob
-      5. Проверить conversation.mode:
+Telegram POST /api/webhook/telegram/{channel}
+  → TelegramWebhookController
+    → TelegramUpdateParser (парсинг raw Telegram update в IncomingMessageData)
+    → findOrCreate Client, Conversation
+    → Проверка privacy consent
+    → ProcessIncomingMessageAction.handle(Channel, IncomingMessageData)
+      1. Сохранить Message (type + attachments в jsonb)
+      2. Если есть file_id → dispatch DownloadTelegramFileJob
+      3. Если voice → dispatch TranscribeVoiceMessageJob
+      4. Проверить conversation.mode:
          - AI: MessageTextPreparer → GenerateAIResponseAction → ответ
          - Manual/Escalated: event(MessageReceived) → WebSocket → нет ответа
 ```
@@ -243,8 +244,8 @@ mkdir -p app/Domain/NewDomain/{Actions,Models,DataObjects,Enums}
 ### Добавить новый тип сообщения
 
 1. Добавить case в `MessageType` enum
-2. Обновить `MessageTextPreparer.prepare()` — текст для AI
-3. Обновить Gateway `telegram-parser.ts` — парсинг из Telegram update
+2. Обновить `TelegramUpdateParser` — парсинг из Telegram update
+3. Обновить `MessageTextPreparer.prepare()` — текст для AI
 4. Обновить `MessageResource` если нужны доп.поля
 5. Обновить фронтенд `MessageContent.tsx` — рендеринг
 

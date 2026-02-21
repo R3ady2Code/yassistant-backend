@@ -8,4 +8,5 @@ enum ConversationMode: string
 {
     case AI = 'ai';
     case Manual = 'manual';
+    case Escalated = 'escalated';
 }

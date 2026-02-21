@@ -82,7 +82,7 @@ final class TelegramWebhookController extends AbstractController
                 return Empty204Resource::make(null);
             }
 
-            if ($conversation->mode === ConversationMode::Manual) {
+            if ($conversation->mode !== ConversationMode::AI) {
                 return Empty204Resource::make(null);
             }
 
