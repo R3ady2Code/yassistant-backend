@@ -7,6 +7,7 @@ namespace App\Http\Conversations\Resources;
 use App\Abstracts\AbstractJsonResource;
 use App\Domain\Conversation\Models\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @mixin Message
@@ -26,6 +27,9 @@ class MessageResource extends AbstractJsonResource
             'sender_type' => $this->sender_type->value,
             'text' => $this->text,
             'attachments' => $this->attachments,
+            'file_url' => ($this->metadata['file_path'] ?? null)
+                ? Storage::url($this->metadata['file_path'])
+                : null,
             'created_at' => $this->created_at?->toISOString(),
         ];
     }

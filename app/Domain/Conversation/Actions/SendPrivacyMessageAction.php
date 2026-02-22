@@ -12,7 +12,7 @@ use App\Domain\Conversation\Enums\MessageDirection;
 use App\Domain\Conversation\Enums\MessageType;
 use App\Domain\Conversation\Enums\SenderType;
 use App\Domain\Conversation\Models\Message;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 
 final class SendPrivacyMessageAction extends AbstractAction
 {

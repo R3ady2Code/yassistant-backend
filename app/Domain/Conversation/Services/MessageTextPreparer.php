@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Conversation\Services;
 
-use App\Domain\Conversation\Models\Message;
 use App\Domain\Conversation\Enums\MessageType;
+use App\Domain\Conversation\Models\Message;
 
 final class MessageTextPreparer
 {

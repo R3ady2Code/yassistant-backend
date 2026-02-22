@@ -22,11 +22,7 @@ final class ConversationContextLoader
      */
     public function load(Conversation $conversation, int $limit = 20): array
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Domain\Conversation\Models\Message> $messages */
-        $messages = $conversation->messages()
-            ->orderBy('created_at', 'asc')
-            ->limit($limit)
-            ->get();
+        $messages = $conversation->messages()->orderBy('created_at')->limit($limit)->get();
 
         $result = [];
         $totalChars = 0;

@@ -3,10 +3,13 @@
 declare(strict_types=1);
 
 use App\Http\Auth\Controllers\AuthController;
+use App\Http\BotSettings\Controllers\BotSettingsController;
 use App\Http\Channels\Controllers\ChannelController;
 use App\Http\Channels\Middleware\AuthorizeChannelOwner;
 use App\Http\Conversations\Controllers\ConversationController;
 use App\Http\Conversations\Middleware\AuthorizeConversationOwner;
+use App\Http\Faq\Controllers\FaqController;
+use App\Http\Faq\Middleware\AuthorizeFaqOwner;
 use App\Http\Webhook\Controllers\TelegramWebhookController;
 use App\Http\Webhook\Middleware\VerifyTelegramWebhookSecret;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +53,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/conversations/{conversation}/toggle-ai', [ConversationController::class, 'toggleAi']);
         Route::post('/conversations/{conversation}/send', [ConversationController::class, 'send']);
         Route::post('/conversations/{conversation}/close', [ConversationController::class, 'close']);
+    });
+
+    // Bot Settings
+    Route::get('/bot-settings', [BotSettingsController::class, 'show']);
+    Route::post('/bot-settings/update', [BotSettingsController::class, 'update']);
+
+    // FAQ
+    Route::get('/faq', [FaqController::class, 'index']);
+    Route::post('/faq', [FaqController::class, 'store']);
+    Route::post('/faq/reorder', [FaqController::class, 'reorder']);
+
+    Route::middleware(AuthorizeFaqOwner::class)->group(function () {
+        Route::post('/faq/{faqEntry}/update', [FaqController::class, 'update']);
+        Route::post('/faq/{faqEntry}/delete', [FaqController::class, 'destroy']);
     });
 });
 

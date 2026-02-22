@@ -12,7 +12,10 @@ use App\Adapters\Vault\VaultAdapter;
 use App\Domain\AI\Contracts\OpenAIContract;
 use App\Domain\Channel\Contracts\TelegramContract;
 use App\Domain\Conversation\Contracts\FileStorageContract;
+use App\Domain\Conversation\Models\Conversation;
+use App\Domain\Conversation\Policies\ConversationPolicy;
 use App\Domain\Identity\Contracts\VaultContract;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +36,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        Gate::policy(Conversation::class, ConversationPolicy::class);
     }
 }
