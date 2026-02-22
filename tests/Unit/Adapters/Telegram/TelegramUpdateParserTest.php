@@ -17,7 +17,7 @@ class TelegramUpdateParserTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new TelegramUpdateParser();
+        $this->parser = new TelegramUpdateParser;
     }
 
     private function makeUpdate(array $partial): array

@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Auth\Controllers\AuthController;
 use App\Http\Channels\Controllers\ChannelController;
 use App\Http\Channels\Middleware\AuthorizeChannelOwner;
+use App\Http\Conversations\Controllers\ConversationController;
+use App\Http\Conversations\Middleware\AuthorizeConversationOwner;
 use App\Http\Webhook\Controllers\TelegramWebhookController;
 use App\Http\Webhook\Middleware\VerifyTelegramWebhookSecret;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +37,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/channels/{channel}/delete', [ChannelController::class, 'destroy']);
         Route::post('/channels/{channel}/activate', [ChannelController::class, 'activate']);
         Route::post('/channels/{channel}/deactivate', [ChannelController::class, 'deactivate']);
+    });
+
+    // Conversations
+    Route::get('/conversations', [ConversationController::class, 'index']);
+
+    Route::middleware(AuthorizeConversationOwner::class)->group(function () {
+        Route::get('/conversations/{conversation}', [ConversationController::class, 'show']);
+        Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages']);
+        Route::post('/conversations/{conversation}/takeover', [ConversationController::class, 'takeover']);
+        Route::post('/conversations/{conversation}/release', [ConversationController::class, 'release']);
+        Route::post('/conversations/{conversation}/toggle-ai', [ConversationController::class, 'toggleAi']);
+        Route::post('/conversations/{conversation}/send', [ConversationController::class, 'send']);
+        Route::post('/conversations/{conversation}/close', [ConversationController::class, 'close']);
     });
 });
 

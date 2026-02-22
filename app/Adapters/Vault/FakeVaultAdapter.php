@@ -13,23 +13,23 @@ readonly class FakeVaultAdapter implements VaultContract
 
     public function get(string $path): ?string
     {
-        $value = Cache::get(self::PREFIX . $path);
+        $value = Cache::get(self::PREFIX.$path);
 
         return is_string($value) ? $value : null;
     }
 
     public function put(string $path, string $value): void
     {
-        Cache::forever(self::PREFIX . $path, $value);
+        Cache::forever(self::PREFIX.$path, $value);
     }
 
     public function delete(string $path): void
     {
-        Cache::forget(self::PREFIX . $path);
+        Cache::forget(self::PREFIX.$path);
     }
 
     public function has(string $path): bool
     {
-        return Cache::has(self::PREFIX . $path);
+        return Cache::has(self::PREFIX.$path);
     }
 }

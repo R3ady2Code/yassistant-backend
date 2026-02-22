@@ -13,7 +13,7 @@ readonly class VaultAdapter implements VaultContract
     public function get(string $path): ?string
     {
         $response = Http::withToken(config('services.vault.token'))
-            ->get(config('services.vault.url') . "/v1/secret/data/{$path}");
+            ->get(config('services.vault.url')."/v1/secret/data/{$path}");
 
         if ($response->notFound()) {
             return null;
@@ -29,7 +29,7 @@ readonly class VaultAdapter implements VaultContract
     public function put(string $path, string $value): void
     {
         $response = Http::withToken(config('services.vault.token'))
-            ->post(config('services.vault.url') . "/v1/secret/data/{$path}", [
+            ->post(config('services.vault.url')."/v1/secret/data/{$path}", [
                 'data' => ['value' => $value],
             ]);
 
@@ -41,7 +41,7 @@ readonly class VaultAdapter implements VaultContract
     public function delete(string $path): void
     {
         $response = Http::withToken(config('services.vault.token'))
-            ->delete(config('services.vault.url') . "/v1/secret/data/{$path}");
+            ->delete(config('services.vault.url')."/v1/secret/data/{$path}");
 
         if ($response->failed()) {
             throw new RuntimeException("Vault DELETE failed for path [{$path}]: {$response->body()}");

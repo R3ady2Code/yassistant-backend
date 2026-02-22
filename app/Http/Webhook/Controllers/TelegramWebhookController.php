@@ -7,7 +7,7 @@ namespace App\Http\Webhook\Controllers;
 use App\Abstracts\AbstractController;
 use App\Abstracts\Empty204Resource;
 use App\Adapters\Telegram\TelegramUpdateParser;
-use App\Domain\Channel\Contracts\TelegramContract;
+use App\Domain\AI\Actions\GenerateAIResponseAction;
 use App\Domain\Channel\Exceptions\BotTokenNotFoundException;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Conversation\Actions\ProcessIncomingMessageAction;
@@ -20,22 +20,20 @@ use App\Domain\Conversation\Models\Conversation;
 use App\Domain\Identity\Contracts\VaultContract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use SergiX44\Hydrator\Hydrator;
 
 final class TelegramWebhookController extends AbstractController
 {
     public function __construct(
         private readonly VaultContract $vault,
-        private readonly TelegramContract $telegram,
-    ) {
-    }
+    ) {}
 
     public function __invoke(
         Request $request,
         Channel $channel,
         TelegramUpdateParser $parser,
         ProcessIncomingMessageAction $processIncomingMessageAction,
-        SendPrivacyMessageAction $sendPrivacyMessageAction
+        SendPrivacyMessageAction $sendPrivacyMessageAction,
+        GenerateAIResponseAction $generateAIResponseAction,
     ): Empty204Resource {
         try {
             $messageData = $parser->parse($channel->id, $request->all());
@@ -73,22 +71,20 @@ final class TelegramWebhookController extends AbstractController
                 botToken: $botToken,
                 conversation: $conversation,
                 client: $client,
-                messageData: $messageData
+                messageData: $messageData,
             );
 
-            if (!$client->hasAcceptedPrivacy()) {
+            if (! $client->hasAcceptedPrivacy()) {
                 $sendPrivacyMessageAction->handle($handleMessageData);
 
                 return Empty204Resource::make(null);
             }
 
-            if ($conversation->mode !== ConversationMode::AI) {
-                return Empty204Resource::make(null);
+            $processIncomingMessageAction->handle($handleMessageData);
+
+            if ($conversation->mode === ConversationMode::AI) {
+                $generateAIResponseAction->handle($handleMessageData);
             }
-
-
-
-            $processIncomingMessageAction->handle($channel, $messageData);
 
             return Empty204Resource::make(null);
         } catch (\Throwable $e) {
