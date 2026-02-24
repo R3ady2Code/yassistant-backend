@@ -11,15 +11,13 @@ use App\Domain\Identity\DataObjects\RegisterTenantData;
 use App\Domain\Identity\Enums\TenantStatus;
 use App\Domain\Identity\Models\Tenant;
 use App\Domain\Identity\Models\User;
-use App\Domain\Scenario\Actions\SeedDefaultScenariosAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 final class RegisterTenantAction extends AbstractAction
 {
-    public function __construct(
-        private readonly SeedDefaultScenariosAction $seedScenarios,
-    ) {
+    public function __construct()
+    {
         parent::__construct();
     }
 
@@ -42,8 +40,6 @@ final class RegisterTenantAction extends AbstractAction
             BotSettings::create([
                 'tenant_id' => $tenant->id,
             ]);
-
-            $this->seedScenarios->handle($tenant);
 
             $token = $user->createToken('auth')->plainTextToken;
 

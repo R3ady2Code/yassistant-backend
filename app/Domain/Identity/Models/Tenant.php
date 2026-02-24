@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Identity\Models;
 
 use App\Domain\AI\Models\BotSettings;
+use App\Domain\Booking\Models\BookingFlow;
 use App\Domain\Booking\Models\TenantBranch;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Conversation\Models\Conversation;
 use App\Domain\Identity\Enums\TenantStatus;
-use App\Domain\Scenario\Models\Scenario;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Channel> $channels
  * @property-read Collection<int, Conversation> $conversations
  * @property-read ?BotSettings $botSettings
- * @property-read Collection<int, Scenario> $scenarios
+ * @property-read Collection<int, BookingFlow> $bookingFlows
  * @property-read Collection<int, TenantBranch> $branches
  */
 class Tenant extends Model
@@ -72,9 +72,9 @@ class Tenant extends Model
         return $this->hasOne(BotSettings::class);
     }
 
-    public function scenarios(): HasMany
+    public function bookingFlows(): HasMany
     {
-        return $this->hasMany(Scenario::class);
+        return $this->hasMany(BookingFlow::class);
     }
 
     public function branches(): HasMany

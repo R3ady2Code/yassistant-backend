@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Auth\Controllers\AuthController;
+use App\Http\BookingFlows\Controllers\BookingFlowController;
+use App\Http\BookingFlows\Middleware\AuthorizeBookingFlowOwner;
 use App\Http\BotSettings\Controllers\BotSettingsController;
 use App\Http\Channels\Controllers\ChannelController;
 use App\Http\Channels\Middleware\AuthorizeChannelOwner;
@@ -12,6 +14,7 @@ use App\Http\Faq\Controllers\FaqController;
 use App\Http\Faq\Middleware\AuthorizeFaqOwner;
 use App\Http\Webhook\Controllers\TelegramWebhookController;
 use App\Http\Webhook\Middleware\VerifyTelegramWebhookSecret;
+use App\Http\YClients\Controllers\YClientsSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok']));
@@ -58,6 +61,23 @@ Route::middleware('auth:sanctum')->group(function () {
     // Bot Settings
     Route::get('/bot-settings', [BotSettingsController::class, 'show']);
     Route::post('/bot-settings/update', [BotSettingsController::class, 'update']);
+
+    // YClients Settings
+    Route::get('/yclients-settings', [YClientsSettingsController::class, 'show']);
+    Route::post('/yclients-settings/token', [YClientsSettingsController::class, 'updateToken']);
+    Route::post('/yclients-settings/disconnect', [YClientsSettingsController::class, 'disconnect']);
+
+    // Booking Flows
+    Route::get('/booking-flows', [BookingFlowController::class, 'index']);
+    Route::post('/booking-flows', [BookingFlowController::class, 'store']);
+
+    Route::middleware(AuthorizeBookingFlowOwner::class)->group(function () {
+        Route::get('/booking-flows/{bookingFlow}', [BookingFlowController::class, 'show']);
+        Route::put('/booking-flows/{bookingFlow}', [BookingFlowController::class, 'update']);
+        Route::delete('/booking-flows/{bookingFlow}', [BookingFlowController::class, 'destroy']);
+        Route::put('/booking-flows/{bookingFlow}/reorder', [BookingFlowController::class, 'reorder']);
+        Route::post('/booking-flows/{bookingFlow}/toggle', [BookingFlowController::class, 'toggle']);
+    });
 
     // FAQ
     Route::get('/faq', [FaqController::class, 'index']);

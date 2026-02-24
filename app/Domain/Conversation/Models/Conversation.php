@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Conversation\Models;
 
+use App\Domain\Booking\Models\BookingFlow;
 use App\Domain\Channel\Models\Channel;
 use App\Domain\Conversation\Enums\ConversationMode;
 use App\Domain\Conversation\Enums\ConversationStatus;
@@ -21,9 +22,10 @@ use Illuminate\Support\Carbon;
  * @property string $tenant_id
  * @property string $channel_id
  * @property ?string $client_id
+ * @property ?int $booking_flow_id
  * @property string $external_chat_id
  * @property ConversationMode $mode
- * @property ?array $scenario_state
+ * @property ?array $pipeline_state
  * @property ConversationStatus $status
  * @property ?Carbon $last_message_at
  * @property ?Carbon $created_at
@@ -31,6 +33,7 @@ use Illuminate\Support\Carbon;
  * @property-read Tenant $tenant
  * @property-read Channel $channel
  * @property-read ?Client $client
+ * @property-read ?BookingFlow $bookingFlow
  * @property-read Collection<int, Message> $messages
  */
 class Conversation extends Model
@@ -42,9 +45,10 @@ class Conversation extends Model
         'tenant_id',
         'channel_id',
         'client_id',
+        'booking_flow_id',
         'external_chat_id',
         'mode',
-        'scenario_state',
+        'pipeline_state',
         'status',
         'last_message_at',
     ];
@@ -53,7 +57,8 @@ class Conversation extends Model
     {
         return [
             'mode' => ConversationMode::class,
-            'scenario_state' => 'json',
+            'pipeline_state' => 'json',
+            'booking_flow_id' => 'integer',
             'status' => ConversationStatus::class,
             'last_message_at' => 'datetime',
         ];
@@ -72,6 +77,11 @@ class Conversation extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function bookingFlow(): BelongsTo
+    {
+        return $this->belongsTo(BookingFlow::class);
     }
 
     public function messages(): HasMany

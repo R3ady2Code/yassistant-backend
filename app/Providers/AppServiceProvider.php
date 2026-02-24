@@ -9,6 +9,8 @@ use App\Adapters\OpenAI\OpenAIAdapter;
 use App\Adapters\Telegram\TelegramAdapter;
 use App\Adapters\Vault\FakeVaultAdapter;
 use App\Adapters\Vault\VaultAdapter;
+use App\Adapters\YClients\YClientsAdapter;
+use App\Domain\Booking\Contracts\YClientsContract;
 use App\Domain\AI\Contracts\OpenAIContract;
 use App\Domain\Channel\Contracts\TelegramContract;
 use App\Domain\Conversation\Contracts\FileStorageContract;
@@ -32,6 +34,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TelegramContract::class, TelegramAdapter::class);
 
         $this->app->bind(OpenAIContract::class, OpenAIAdapter::class);
+
+        $this->app->bind(YClientsContract::class, YClientsAdapter::class);
     }
 
     public function boot(): void
