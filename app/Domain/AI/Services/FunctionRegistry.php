@@ -5,17 +5,50 @@ declare(strict_types=1);
 namespace App\Domain\AI\Services;
 
 use App\Domain\AI\Enums\AIFunction;
+use App\Domain\AI\Enums\BotOperation;
 use App\Domain\AI\Models\BotSettings;
+use App\Domain\Conversation\Models\Conversation;
+use App\Domain\Conversation\Services\BookingPipelineManager;
 
-final class FunctionRegistry
+final readonly class FunctionRegistry
 {
+    /**
+     * Which BotOperation enables which AI functions.
+     */
+    private const array OPERATION_FUNCTIONS = [
+        'create_booking' => [
+            AIFunction::GetBranches,
+            AIFunction::GetServices,
+            AIFunction::GetStaff,
+            AIFunction::GetAvailableSlots,
+            AIFunction::CreateBooking,
+            AIFunction::StartCustomFlow,
+        ],
+        'cancel_booking' => [],
+        'edit_booking' => [],
+    ];
+
+    /**
+     * Functions available only when a booking pipeline is active.
+     */
+    private const array PIPELINE_FUNCTIONS = [
+        AIFunction::SaveCustomAnswer,
+        AIFunction::CancelPipeline,
+    ];
+
+    public function __construct(
+        private BookingPipelineManager $pipelineManager,
+    ) {}
+
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function forTenant(BotSettings $settings): array
+    public function forTenant(BotSettings $settings, Conversation $conversation): array
     {
+        $enabledFunctions = $this->resolveEnabledFunctions($settings);
+        $pipelineActive = $this->pipelineManager->isActive($conversation);
+
         $tools = [];
-        $allowedOperations = $settings->allowed_operations ?? [];
 
         foreach (AIFunction::cases() as $function) {
             if ($function === AIFunction::EscalateToHuman) {
@@ -24,12 +57,36 @@ final class FunctionRegistry
                 continue;
             }
 
-            if (in_array($function->value, $allowedOperations, true)) {
+            if (in_array($function, self::PIPELINE_FUNCTIONS, true)) {
+                if ($pipelineActive) {
+                    $tools[] = $this->buildDefinition($function);
+                }
+
+                continue;
+            }
+
+            if (in_array($function, $enabledFunctions, true)) {
                 $tools[] = $this->buildDefinition($function);
             }
         }
 
         return $tools;
+    }
+
+    /**
+     * @return AIFunction[]
+     */
+    private function resolveEnabledFunctions(BotSettings $settings): array
+    {
+        $functions = [];
+
+        foreach (BotOperation::cases() as $operation) {
+            if ($settings->isOperationEnabled($operation)) {
+                $functions = array_merge($functions, self::OPERATION_FUNCTIONS[$operation->value] ?? []);
+            }
+        }
+
+        return array_unique($functions);
     }
 
     /**
@@ -150,6 +207,55 @@ final class FunctionRegistry
                             ],
                         ],
                         'required' => ['branch_id', 'staff_id', 'service_id', 'datetime', 'client_name', 'client_phone'],
+                    ],
+                ],
+            ],
+            AIFunction::StartCustomFlow => [
+                'type' => 'function',
+                'function' => [
+                    'name' => $function->value,
+                    'description' => 'Начать запись по кастомному flow. Вызывай когда определил что клиент хочет услугу, для которой есть кастомный flow.',
+                    'parameters' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'service_id' => [
+                                'type' => 'integer',
+                                'description' => 'ID услуги в YClients',
+                            ],
+                        ],
+                        'required' => ['service_id'],
+                    ],
+                ],
+            ],
+            AIFunction::SaveCustomAnswer => [
+                'type' => 'function',
+                'function' => [
+                    'name' => $function->value,
+                    'description' => 'Сохранить ответ на текущий кастомный вопрос.',
+                    'parameters' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'step_id' => [
+                                'type' => 'integer',
+                                'description' => 'ID текущего шага',
+                            ],
+                            'extracted_value' => [
+                                'type' => 'string',
+                                'description' => 'Извлечённое значение. Для number — число строкой. Для choice — точный вариант из списка. Для yes_no — "yes" или "no". Для text — текст.',
+                            ],
+                        ],
+                        'required' => ['step_id', 'extracted_value'],
+                    ],
+                ],
+            ],
+            AIFunction::CancelPipeline => [
+                'type' => 'function',
+                'function' => [
+                    'name' => $function->value,
+                    'description' => 'Клиент передумал записываться. Отменить текущий flow.',
+                    'parameters' => [
+                        'type' => 'object',
+                        'properties' => new \stdClass,
                     ],
                 ],
             ],

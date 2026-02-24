@@ -42,7 +42,9 @@ final class GenerateAIResponseAction extends AbstractAction
     public function handle(HandleMessageData $data): void
     {
         $conversation = $data->conversation;
-        $settings = BotSettings::where('tenant_id', $conversation->tenant_id)->first();
+        $settings = BotSettings::with('operations')
+            ->where('tenant_id', $conversation->tenant_id)
+            ->first();
 
         if ($settings === null) {
             $this->sendAndSave($data, self::FALLBACK_MESSAGE);
@@ -50,9 +52,9 @@ final class GenerateAIResponseAction extends AbstractAction
             return;
         }
 
-        $systemPrompt = $this->promptBuilder->build($settings, $data->client);
+        $systemPrompt = $this->promptBuilder->build($settings, $data->client, $conversation);
         $contextMessages = $this->contextLoader->load($conversation);
-        $tools = $this->functionRegistry->forTenant($settings);
+        $tools = $this->functionRegistry->forTenant($settings, $conversation);
 
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],

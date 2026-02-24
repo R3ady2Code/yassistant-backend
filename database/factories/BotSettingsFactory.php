@@ -21,7 +21,6 @@ class BotSettingsFactory extends Factory
             'tenant_id' => Tenant::factory(),
             'system_prompt' => fake()->paragraph(),
             'ai_model' => 'gpt-4o',
-            'allowed_operations' => [],
             'max_function_calls' => 5,
             'greeting_message' => fake()->sentence(),
             'escalation_message' => fake()->sentence(),

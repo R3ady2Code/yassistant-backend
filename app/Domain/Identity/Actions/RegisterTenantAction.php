@@ -37,9 +37,10 @@ final class RegisterTenantAction extends AbstractAction
                 'password' => $data->password,
             ]);
 
-            BotSettings::create([
+            $botSettings = BotSettings::create([
                 'tenant_id' => $tenant->id,
             ]);
+            $botSettings->seedDefaultOperations();
 
             $token = $user->createToken('auth')->plainTextToken;
 

@@ -17,6 +17,7 @@ final class BotSettingsController extends AbstractController
     public function show(): JsonResponse
     {
         $settings = BotSettings::query()
+            ->with('operations')
             ->where('tenant_id', auth()->user()->tenant_id)
             ->firstOrFail();
 
@@ -28,13 +29,14 @@ final class BotSettingsController extends AbstractController
         UpdateBotSettingsAction $action,
     ): JsonResponse {
         $settings = BotSettings::query()
+            ->with('operations')
             ->where('tenant_id', auth()->user()->tenant_id)
             ->firstOrFail();
 
         $data = new UpdateBotSettingsData(
             systemPrompt: $request->validated('system_prompt'),
             aiModel: $request->validated('ai_model'),
-            allowedOperations: $request->validated('allowed_operations'),
+            operations: $request->validated('operations'),
             maxFunctionCalls: $request->validated('max_function_calls'),
             greetingMessage: $request->validated('greeting_message'),
             escalationMessage: $request->validated('escalation_message'),

@@ -23,7 +23,9 @@ class BotSettingsResource extends AbstractJsonResource
             'tenant_id' => $this->tenant_id,
             'system_prompt' => $this->system_prompt,
             'ai_model' => $this->ai_model,
-            'allowed_operations' => $this->allowed_operations,
+            'operations' => $this->operations->mapWithKeys(fn ($op) => [
+                $op->operation->value => $op->is_enabled,
+            ]),
             'max_function_calls' => $this->max_function_calls,
             'greeting_message' => $this->greeting_message,
             'escalation_message' => $this->escalation_message,

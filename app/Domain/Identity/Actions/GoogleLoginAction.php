@@ -64,9 +64,10 @@ final class GoogleLoginAction extends AbstractAction
                 'email_verified_at' => now(),
             ]);
 
-            BotSettings::create([
+            $botSettings = BotSettings::create([
                 'tenant_id' => $tenant->id,
             ]);
+            $botSettings->seedDefaultOperations();
 
             $token = $user->createToken('auth')->plainTextToken;
 
