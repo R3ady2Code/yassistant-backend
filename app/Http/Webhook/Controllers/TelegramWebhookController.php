@@ -74,7 +74,7 @@ final class TelegramWebhookController extends AbstractController
                 messageData: $messageData,
             );
 
-            if (! $client->hasAcceptedPrivacy()) {
+            if ($client->privacy_accepted_at === null) {
                 $sendPrivacyMessageAction->handle($handleMessageData);
 
                 return Empty204Resource::make(null);

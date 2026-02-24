@@ -49,11 +49,6 @@ class Client extends Model
         ];
     }
 
-    public function hasAcceptedPrivacy(): bool
-    {
-        return $this->privacy_accepted_at !== null;
-    }
-
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
