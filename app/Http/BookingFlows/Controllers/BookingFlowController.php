@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Http\BookingFlows\Controllers;
 
 use App\Abstracts\AbstractController;
+use App\Abstracts\Empty204Resource;
 use App\Domain\Booking\Actions\CreateBookingFlowAction;
 use App\Domain\Booking\Actions\DeleteBookingFlowAction;
 use App\Domain\Booking\Actions\ReorderFlowStepsAction;
+use App\Domain\Booking\Actions\ToggleBookingFlowAction;
 use App\Domain\Booking\Actions\UpdateBookingFlowAction;
 use App\Domain\Booking\DataObjects\BookingFlowData;
 use App\Domain\Booking\DataObjects\FlowStepData;
@@ -17,38 +19,35 @@ use App\Http\BookingFlows\Requests\CreateBookingFlowRequest;
 use App\Http\BookingFlows\Requests\ReorderFlowStepsRequest;
 use App\Http\BookingFlows\Requests\UpdateBookingFlowRequest;
 use App\Http\BookingFlows\Resources\BookingFlowResource;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 final class BookingFlowController extends AbstractController
 {
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
         $flows = BookingFlow::query()
             ->where('tenant_id', auth()->user()->tenant_id)
             ->with('steps')
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
             ->get();
 
-        return response()->json(BookingFlowResource::collection($flows));
+        return BookingFlowResource::collection($flows);
     }
 
-    public function show(BookingFlow $bookingFlow): JsonResponse
+    public function show(BookingFlow $bookingFlow): BookingFlowResource
     {
         $bookingFlow->load('steps');
 
-        return response()->json(new BookingFlowResource($bookingFlow));
+        return BookingFlowResource::make($bookingFlow);
     }
 
     public function store(
         CreateBookingFlowRequest $request,
         CreateBookingFlowAction $action,
-    ): JsonResponse {
+    ): BookingFlowResource {
         $data = new BookingFlowData(
             tenantId: auth()->user()->tenant_id,
             name: $request->validated('name'),
-            yclientsServiceId: $request->validated('yclients_service_id'),
-            yclientsServiceName: $request->validated('yclients_service_name'),
-            yclientsBranchId: $request->validated('yclients_branch_id'),
             askStaff: $request->validated('ask_staff', false),
             isActive: $request->validated('is_active', true),
             steps: $this->mapSteps($request->validated('steps', [])),
@@ -56,20 +55,17 @@ final class BookingFlowController extends AbstractController
 
         $flow = $action->handle($data);
 
-        return response()->json(new BookingFlowResource($flow), 201);
+        return BookingFlowResource::make($flow);
     }
 
     public function update(
         BookingFlow $bookingFlow,
         UpdateBookingFlowRequest $request,
         UpdateBookingFlowAction $action,
-    ): JsonResponse {
+    ): BookingFlowResource {
         $data = new BookingFlowData(
             tenantId: $bookingFlow->tenant_id,
             name: $request->validated('name'),
-            yclientsServiceId: $request->validated('yclients_service_id'),
-            yclientsServiceName: $request->validated('yclients_service_name'),
-            yclientsBranchId: $request->validated('yclients_branch_id'),
             askStaff: $request->validated('ask_staff', false),
             isActive: $request->validated('is_active', true),
             steps: $this->mapSteps($request->validated('steps', [])),
@@ -77,33 +73,35 @@ final class BookingFlowController extends AbstractController
 
         $flow = $action->handle($bookingFlow, $data);
 
-        return response()->json(new BookingFlowResource($flow));
+        return BookingFlowResource::make($flow);
     }
 
     public function destroy(
         BookingFlow $bookingFlow,
         DeleteBookingFlowAction $action,
-    ): JsonResponse {
+    ): Empty204Resource {
         $action->handle($bookingFlow);
 
-        return response()->json(null, 204);
+        return Empty204Resource::make(null);
     }
 
     public function reorder(
         BookingFlow $bookingFlow,
         ReorderFlowStepsRequest $request,
         ReorderFlowStepsAction $action,
-    ): JsonResponse {
+    ): Empty204Resource {
         $action->handle($bookingFlow, $request->validated('ids'));
 
-        return response()->json(null, 204);
+        return Empty204Resource::make(null);
     }
 
-    public function toggle(BookingFlow $bookingFlow): JsonResponse
-    {
-        $bookingFlow->update(['is_active' => ! $bookingFlow->is_active]);
+    public function toggle(
+        BookingFlow $bookingFlow,
+        ToggleBookingFlowAction $action,
+    ): BookingFlowResource {
+        $flow = $action->handle($bookingFlow);
 
-        return response()->json(new BookingFlowResource($bookingFlow->load('steps')));
+        return BookingFlowResource::make($flow);
     }
 
     /**

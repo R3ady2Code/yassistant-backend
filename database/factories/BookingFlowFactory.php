@@ -20,9 +20,6 @@ class BookingFlowFactory extends Factory
         return [
             'tenant_id' => Tenant::factory(),
             'name' => fake()->words(3, true),
-            'yclients_service_id' => fake()->unique()->numberBetween(1, 99999),
-            'yclients_service_name' => fake()->words(2, true),
-            'yclients_branch_id' => fake()->numberBetween(1, 99999),
             'ask_staff' => false,
             'is_active' => true,
         ];

@@ -14,9 +14,6 @@ final class CreateBookingFlowRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'yclients_service_id' => ['required', 'integer'],
-            'yclients_service_name' => ['required', 'string', 'max:255'],
-            'yclients_branch_id' => ['required', 'integer'],
             'ask_staff' => ['sometimes', 'boolean'],
             'is_active' => ['sometimes', 'boolean'],
             'steps' => ['sometimes', 'array'],

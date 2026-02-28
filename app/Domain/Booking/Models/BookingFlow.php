@@ -16,9 +16,6 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $tenant_id
  * @property string $name
- * @property int $yclients_service_id
- * @property string $yclients_service_name
- * @property int $yclients_branch_id
  * @property bool $ask_staff
  * @property bool $is_active
  * @property ?Carbon $created_at
@@ -33,9 +30,6 @@ class BookingFlow extends Model
     protected $fillable = [
         'tenant_id',
         'name',
-        'yclients_service_id',
-        'yclients_service_name',
-        'yclients_branch_id',
         'ask_staff',
         'is_active',
     ];
@@ -43,8 +37,6 @@ class BookingFlow extends Model
     protected function casts(): array
     {
         return [
-            'yclients_service_id' => 'integer',
-            'yclients_branch_id' => 'integer',
             'ask_staff' => 'boolean',
             'is_active' => 'boolean',
         ];

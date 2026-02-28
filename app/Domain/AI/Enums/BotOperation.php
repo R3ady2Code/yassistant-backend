@@ -9,4 +9,5 @@ enum BotOperation: string
     case CreateBooking = 'create_booking';
     case CancelBooking = 'cancel_booking';
     case EditBooking = 'edit_booking';
+    case AskFaq = 'ask_faq';
 }

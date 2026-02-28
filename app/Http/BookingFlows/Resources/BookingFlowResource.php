@@ -14,9 +14,6 @@ final class BookingFlowResource extends AbstractJsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'yclients_service_id' => $this->yclients_service_id,
-            'yclients_service_name' => $this->yclients_service_name,
-            'yclients_branch_id' => $this->yclients_branch_id,
             'ask_staff' => $this->ask_staff,
             'is_active' => $this->is_active,
             'steps' => FlowStepResource::collection($this->whenLoaded('steps')),

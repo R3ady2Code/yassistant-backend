@@ -16,14 +16,9 @@ return new class extends Migration
             $table->id();
             $table->foreignUuid('tenant_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->integer('yclients_service_id');
-            $table->string('yclients_service_name');
-            $table->integer('yclients_branch_id');
             $table->boolean('ask_staff')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-
-            $table->unique(['tenant_id', 'yclients_service_id']);
         });
 
         Schema::create('booking_flow_steps', function (Blueprint $table) {

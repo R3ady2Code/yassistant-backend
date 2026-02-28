@@ -12,9 +12,6 @@ final readonly class BookingFlowData
     public function __construct(
         public string $tenantId,
         public string $name,
-        public int $yclientsServiceId,
-        public string $yclientsServiceName,
-        public int $yclientsBranchId,
         public bool $askStaff = false,
         public bool $isActive = true,
         public array $steps = [],

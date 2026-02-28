@@ -106,7 +106,7 @@ final class BookingPipelineManager
         $state = $conversation->pipeline_state;
         $flow = BookingFlow::find($conversation->booking_flow_id);
 
-        $lines = ["Услуга: {$flow->yclients_service_name}"];
+        $lines = ["Flow: {$flow->name}"];
 
         if ($state['staff_name'] ?? null) {
             $lines[] = "Мастер: {$state['staff_name']}";

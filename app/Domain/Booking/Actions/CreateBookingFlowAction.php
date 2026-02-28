@@ -14,12 +14,15 @@ final class CreateBookingFlowAction extends AbstractAction
     public function handle(BookingFlowData $data): BookingFlow
     {
         return DB::transaction(function () use ($data): BookingFlow {
+            if ($data->isActive) {
+                BookingFlow::where('tenant_id', $data->tenantId)
+                    ->where('is_active', true)
+                    ->update(['is_active' => false]);
+            }
+
             $flow = BookingFlow::create([
                 'tenant_id' => $data->tenantId,
                 'name' => $data->name,
-                'yclients_service_id' => $data->yclientsServiceId,
-                'yclients_service_name' => $data->yclientsServiceName,
-                'yclients_branch_id' => $data->yclientsBranchId,
                 'ask_staff' => $data->askStaff,
                 'is_active' => $data->isActive,
             ]);

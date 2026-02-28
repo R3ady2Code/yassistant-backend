@@ -57,34 +57,4 @@ class BotSettings extends Model
     {
         return $this->hasMany(BotSettingOperation::class, 'bot_setting_id');
     }
-
-    public function seedDefaultOperations(): void
-    {
-        foreach (BotOperation::cases() as $operation) {
-            $this->operations()->firstOrCreate(
-                ['operation' => $operation],
-                ['is_enabled' => false],
-            );
-        }
-    }
-
-    /**
-     * @return string[]
-     */
-    public function allowedOperations(): array
-    {
-        return $this->operations
-            ->where('is_enabled', true)
-            ->pluck('operation')
-            ->map(fn ($op) => $op instanceof BotOperation ? $op->value : $op)
-            ->all();
-    }
-
-    public function isOperationEnabled(BotOperation $operation): bool
-    {
-        return $this->operations
-            ->where('operation', $operation)
-            ->where('is_enabled', true)
-            ->isNotEmpty();
-    }
 }
