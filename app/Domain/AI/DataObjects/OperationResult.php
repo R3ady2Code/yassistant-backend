@@ -9,7 +9,7 @@ use App\Domain\Conversation\Enums\ConversationMode;
 final readonly class OperationResult
 {
     public function __construct(
-        public ?ConversationMode $modeChange = null,
-        public ?string $responseText = null,
+        public ConversationMode $mode,
+        public string $responseText,
     ) {}
 }

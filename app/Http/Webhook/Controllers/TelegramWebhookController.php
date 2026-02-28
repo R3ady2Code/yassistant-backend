@@ -8,8 +8,13 @@ use App\Abstracts\AbstractController;
 use App\Abstracts\Empty204Resource;
 use App\Adapters\Telegram\TelegramUpdateParser;
 use App\Domain\AI\Actions\GetBotOperationAction;
-use App\Domain\AI\DataObjects\OperationResult;
+use App\Domain\AI\Actions\HandleAskFaqAction;
+use App\Domain\AI\Actions\HandleCancelBookingAction;
+use App\Domain\AI\Actions\HandleCreateBookingAction;
+use App\Domain\AI\Actions\HandleEditBookingAction;
+use App\Domain\AI\Actions\HandleGeneralResponseAction;
 use App\Domain\AI\Enums\BotOperation;
+use App\Domain\AI\Enums\FallbackMessage;
 use App\Domain\AI\Models\BotSettings;
 use App\Domain\Channel\Exceptions\BotTokenNotFoundException;
 use App\Domain\Channel\Models\Channel;
@@ -28,8 +33,6 @@ use Illuminate\Support\Facades\Log;
 
 final class TelegramWebhookController extends AbstractController
 {
-    private const string FALLBACK_MESSAGE = 'Извините, не удалось обработать ваш запрос. Попробуйте позже.';
-
     public function __invoke(
         Request $request,
         Channel $channel,
@@ -38,6 +41,11 @@ final class TelegramWebhookController extends AbstractController
         ProcessIncomingMessageAction $processIncomingMessage,
         SendPrivacyMessageAction $sendPrivacyMessage,
         GetBotOperationAction $getBotOperation,
+        HandleCreateBookingAction $handleCreateBooking,
+        HandleCancelBookingAction $handleCancelBooking,
+        HandleEditBookingAction $handleEditBooking,
+        HandleAskFaqAction $handleAskFaq,
+        HandleGeneralResponseAction $handleGeneralResponse,
         EscalateConversationAction $escalateConversation,
         SendTelegramMessageAction $sendTelegramMessage,
     ): Empty204Resource {
@@ -97,7 +105,8 @@ final class TelegramWebhookController extends AbstractController
                 ->first();
 
             if ($settings === null) {
-                $sendTelegramMessage->handle($botToken, $conversation, self::FALLBACK_MESSAGE);
+                $sendTelegramMessage->handle($botToken, $conversation, FallbackMessage::Escalation->value);
+                $escalateConversation->handle($conversation, $botToken);
 
                 return Empty204Resource::make(null);
             }
@@ -107,23 +116,21 @@ final class TelegramWebhookController extends AbstractController
 
             // Step 2: Execute operation → OperationResult
             $result = match ($operation) {
-                BotOperation::CreateBooking => new OperationResult(), // TODO
-                BotOperation::CancelBooking => new OperationResult(), // TODO
-                BotOperation::EditBooking => new OperationResult(), // TODO
-                BotOperation::FAQ => new OperationResult(), // TODO
-                null => new OperationResult(), // TODO: general AI response
+                BotOperation::CreateBooking => $handleCreateBooking->handle($settings, $client, $conversation),
+                BotOperation::CancelBooking => $handleCancelBooking->handle($settings, $client, $conversation),
+                BotOperation::EditBooking => $handleEditBooking->handle($settings, $client, $conversation),
+                BotOperation::AskFaq => $handleAskFaq->handle($settings, $client, $conversation),
+                null => $handleGeneralResponse->handle($settings, $client, $conversation),
             };
 
-            // Step 3: Handle mode change + send response
-            if ($result->modeChange === ConversationMode::Escalated) {
+            // Step 3: Handle mode + send response
+            if ($result->mode === ConversationMode::Escalated) {
                 $escalateConversation->handle($conversation, $botToken);
 
                 return Empty204Resource::make(null);
             }
 
-            if ($result->responseText !== null) {
-                $sendTelegramMessage->handle($botToken, $conversation, $result->responseText);
-            }
+            $sendTelegramMessage->handle($botToken, $conversation, $result->responseText);
 
             return Empty204Resource::make(null);
         } catch (\Throwable $e) {
