@@ -111,10 +111,8 @@ final class TelegramWebhookController extends AbstractController
                 return Empty204Resource::make(null);
             }
 
-            // Step 1: Determine BotOperation
             $operation = $getBotOperation->handle($settings, $conversation);
 
-            // Step 2: Execute operation → OperationResult
             $result = match ($operation) {
                 BotOperation::CreateBooking => $handleCreateBooking->handle($settings, $client, $conversation),
                 BotOperation::CancelBooking => $handleCancelBooking->handle($settings, $client, $conversation),
@@ -123,7 +121,6 @@ final class TelegramWebhookController extends AbstractController
                 default => $handleGeneralResponse->handle($settings, $client, $conversation),
             };
 
-            // Step 3: Handle mode + send response
             if ($result->mode === ConversationMode::Escalated) {
                 $escalateConversation->handle($conversation, $botToken);
 
