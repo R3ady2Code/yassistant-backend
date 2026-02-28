@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\AI\Actions;
 
 use App\Abstracts\AbstractAction;
-use App\Domain\AI\Contracts\OpenAIContract;
 use App\Domain\AI\DataObjects\OperationResult;
 use App\Domain\AI\Enums\FallbackMessage;
-use App\Domain\AI\Exceptions\InvalidClassificationException;
 use App\Domain\AI\Models\BotSettings;
 use App\Domain\AI\Models\FaqEntry;
-use App\Domain\AI\Services\ResponseParser;
+use App\Domain\AI\Services\AICompletionService;
 use App\Domain\Conversation\Enums\ConversationMode;
 use App\Domain\Conversation\Models\Client;
 use App\Domain\Conversation\Models\Conversation;
@@ -21,12 +19,9 @@ use Illuminate\Support\Carbon;
 
 final class HandleAskFaqAction extends AbstractAction
 {
-    private const int MAX_ATTEMPTS = 3;
-
     public function __construct(
-        private readonly OpenAIContract $openAI,
+        private readonly AICompletionService $completionService,
         private readonly ConversationContextLoader $contextLoader,
-        private readonly ResponseParser $responseParser,
     ) {
         parent::__construct();
     }
@@ -41,21 +36,11 @@ final class HandleAskFaqAction extends AbstractAction
 
         $systemPrompt = $this->buildSystemPrompt($settings, $client, $faqEntries);
         $contextMessages = $this->contextLoader->load($conversation);
-        $tool = $this->responseParser->buildTool();
 
-        $messages = [
-            ['role' => 'system', 'content' => $systemPrompt],
-            ...$contextMessages,
-        ];
+        $operationResult = $this->completionService->complete($settings->ai_model, $systemPrompt, $contextMessages);
 
-        for ($attempt = 0; $attempt < self::MAX_ATTEMPTS; $attempt++) {
-            $response = $this->openAI->chatCompletion($settings->ai_model, $messages, [$tool]);
-
-            try {
-                return $this->responseParser->parse($response);
-            } catch (InvalidClassificationException) {
-                continue;
-            }
+        if ($operationResult) {
+            return $operationResult;
         }
 
         return new OperationResult(
