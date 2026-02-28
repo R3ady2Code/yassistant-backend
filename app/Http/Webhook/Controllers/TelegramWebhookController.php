@@ -120,7 +120,7 @@ final class TelegramWebhookController extends AbstractController
                 BotOperation::CancelBooking => $handleCancelBooking->handle($settings, $client, $conversation),
                 BotOperation::EditBooking => $handleEditBooking->handle($settings, $client, $conversation),
                 BotOperation::AskFaq => $handleAskFaq->handle($settings, $client, $conversation),
-                null => $handleGeneralResponse->handle($settings, $client, $conversation),
+                default => $handleGeneralResponse->handle($settings, $client, $conversation),
             };
 
             // Step 3: Handle mode + send response
