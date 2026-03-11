@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\AI\Actions;
+namespace App\Domain\AI\Services;
 
-use App\Abstracts\AbstractAction;
 use App\Domain\AI\DataObjects\OperationResult;
 use App\Domain\AI\Enums\FallbackMessage;
 use App\Domain\AI\Models\BotSettings;
-use App\Domain\AI\Services\AICompletionService;
 use App\Domain\Booking\Models\BookingFlow;
 use App\Domain\Conversation\Enums\ConversationMode;
 use App\Domain\Conversation\Models\Client;
@@ -17,15 +15,13 @@ use App\Domain\Conversation\Services\BookingPipelineManager;
 use App\Domain\Conversation\Services\ConversationContextLoader;
 use Illuminate\Support\Carbon;
 
-final class HandleCreateBookingAction extends AbstractAction
+final class BookingAgentService
 {
     public function __construct(
         private readonly AICompletionService $completionService,
         private readonly ConversationContextLoader $contextLoader,
         private readonly BookingPipelineManager $pipelineManager,
-    ) {
-        parent::__construct();
-    }
+    ) {}
 
     public function handle(BotSettings $settings, Client $client, Conversation $conversation): OperationResult
     {
@@ -42,7 +38,7 @@ final class HandleCreateBookingAction extends AbstractAction
             );
         }
 
-        if (!$this->pipelineManager->isActive($conversation)) {
+        if (! $this->pipelineManager->isActive($conversation)) {
             $this->pipelineManager->startFlow($conversation, $flow);
             $conversation->refresh();
         }

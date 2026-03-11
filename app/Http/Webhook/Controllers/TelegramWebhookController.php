@@ -7,13 +7,7 @@ namespace App\Http\Webhook\Controllers;
 use App\Abstracts\AbstractController;
 use App\Abstracts\Empty204Resource;
 use App\Adapters\Telegram\TelegramUpdateParser;
-use App\Domain\AI\Actions\GetBotOperationAction;
-use App\Domain\AI\Actions\HandleAskFaqAction;
-use App\Domain\AI\Actions\HandleCancelBookingAction;
-use App\Domain\AI\Actions\HandleCreateBookingAction;
-use App\Domain\AI\Actions\HandleEditBookingAction;
-use App\Domain\AI\Actions\HandleGeneralResponseAction;
-use App\Domain\AI\Enums\BotOperation;
+use App\Domain\AI\Actions\RouterAgentAction;
 use App\Domain\AI\Enums\FallbackMessage;
 use App\Domain\AI\Models\BotSettings;
 use App\Domain\Channel\Exceptions\BotTokenNotFoundException;
@@ -40,12 +34,7 @@ final class TelegramWebhookController extends AbstractController
         TelegramUpdateParser $parser,
         ProcessIncomingMessageAction $processIncomingMessage,
         SendPrivacyMessageAction $sendPrivacyMessage,
-        GetBotOperationAction $getBotOperation,
-        HandleCreateBookingAction $handleCreateBooking,
-        HandleCancelBookingAction $handleCancelBooking,
-        HandleEditBookingAction $handleEditBooking,
-        HandleAskFaqAction $handleAskFaq,
-        HandleGeneralResponseAction $handleGeneralResponse,
+        RouterAgentAction $routerAgent,
         EscalateConversationAction $escalateConversation,
         SendTelegramMessageAction $sendTelegramMessage,
     ): Empty204Resource {
@@ -111,15 +100,7 @@ final class TelegramWebhookController extends AbstractController
                 return Empty204Resource::make(null);
             }
 
-            $operation = $getBotOperation->handle($settings, $conversation);
-
-            $result = match ($operation) {
-                BotOperation::CreateBooking => $handleCreateBooking->handle($settings, $client, $conversation),
-                BotOperation::CancelBooking => $handleCancelBooking->handle($settings, $client, $conversation),
-                BotOperation::EditBooking => $handleEditBooking->handle($settings, $client, $conversation),
-                BotOperation::AskFaq => $handleAskFaq->handle($settings, $client, $conversation),
-                default => $handleGeneralResponse->handle($settings, $client, $conversation),
-            };
+            $result = $routerAgent->handle($settings, $client, $conversation);
 
             if ($result->mode === ConversationMode::Escalated) {
                 $escalateConversation->handle($conversation, $botToken);

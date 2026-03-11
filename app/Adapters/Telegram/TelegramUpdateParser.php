@@ -12,9 +12,9 @@ use SergiX44\Nutgram\Telegram\Types\Inline\CallbackQuery;
 use SergiX44\Nutgram\Telegram\Types\Message\Message;
 use SergiX44\Nutgram\Telegram\Types\User\User;
 
-class TelegramUpdateParser
+final readonly class TelegramUpdateParser
 {
-    private readonly Hydrator $hydrator;
+    private Hydrator $hydrator;
 
     public function __construct()
     {
